@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เอกสารอธิบายโครงสร้างและคู่มือระบบจองห้อง อาคาร C (NPRU Room Booking)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #08755e;
+            --primary-dark: #064e3f;
+            --primary-light: #e6f4f1;
+            --primary-accent: #10b981;
+            --secondary: #1e293b;
+            --text-main: #334155;
+            --text-heading: #0f172a;
+            --text-muted: #64748b;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --code-bg: #0f172a;
+            --code-text: #e2e8f0;
+            --tag-get: #0284c7;
+            --tag-post: #16a34a;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
+            --radius-md: 10px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.7;
+            font-size: 15px;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 320px;
+            background: #ffffff;
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            overflow-y: auto;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.02);
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: #ffffff;
+        }
+
+        .sidebar-header h2 {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            opacity: 0.85;
+            margin-top: 4px;
+        }
+
+        .sidebar-nav {
+            padding: 16px 12px;
+            flex: 1;
+        }
+
+        .nav-group-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            padding: 12px 14px 6px;
+            margin-top: 10px;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 14px;
+            color: var(--text-main);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-nav a:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .sidebar-nav a.active {
+            background-color: var(--primary);
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.06);
+            color: var(--text-muted);
+        }
+
+        /* Main Content */
+        .content-wrapper {
+            margin-left: 320px;
+            flex: 1;
+            padding: 40px 60px 100px;
+            max-width: 1280px;
+        }
+
+        /* Header Banner */
+        .hero-banner {
+            background: linear-gradient(135deg, #094d3e 0%, #0d705b 100%);
+            border-radius: var(--radius-lg);
+            padding: 40px 48px;
+            color: #ffffff;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(9, 77, 62, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-banner::after {
+            content: "";
+            position: absolute;
+            right: -40px;
+            bottom: -40px;
+            width: 240px;
+            height: 240px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-banner .badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            padding: 5px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+
+        .hero-banner h1 {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .hero-banner p {
+            font-size: 16px;
+            opacity: 0.9;
+            max-width: 800px;
+            line-height: 1.6;
+        }
+
+        .meta-chips {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .meta-chip {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Sections */
+        section {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 36px 40px;
+            margin-bottom: 36px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        h2.section-title {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 24px;
+            color: var(--text-heading);
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--primary-light);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h2.section-title span.num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: #ffffff;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        h3.sub-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-heading);
+            margin: 28px 0 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h4 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin: 16px 0 8px;
+        }
+
+        p {
+            margin-bottom: 14px;
+            color: #475569;
+        }
+
+        /* Callout Cards */
+        .callout {
+            border-left: 4px solid var(--primary);
+            background-color: var(--primary-light);
+            padding: 16px 20px;
+            border-radius: 0 10px 10px 0;
+            margin: 20px 0;
+            font-size: 14.5px;
+        }
+
+        .callout-title {
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .callout-warning {
+            border-left-color: #f59e0b;
+            background-color: #fffbeb;
+        }
+
+        .callout-warning .callout-title {
+            color: #b45309;
+        }
+
+        .callout-info {
+            border-left-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+
+        .callout-info .callout-title {
+            color: #1d4ed8;
+        }
+
+        /* Tree Directory */
+        .tree-view {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 24px;
+            border-radius: 12px;
+            font-family: 'Fira Code', monospace;
+            font-size: 13.5px;
+            line-height: 1.8;
+            overflow-x: auto;
+            margin: 20px 0;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .tree-comment {
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .tree-folder {
+            color: #38bdf8;
+            font-weight: 600;
+        }
+
+        .tree-file {
+            color: #a7f3d0;
+        }
+
+        /* Workflow Step Chart */
+        .workflow-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .wf-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 22px;
+            position: relative;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s;
+        }
+
+        .wf-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-accent);
+        }
+
+        .wf-step-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 14px;
+        }
+
+        .wf-card h4 {
+            margin: 0 0 8px;
+            font-size: 16px;
+            color: var(--text-heading);
+        }
+
+        .wf-card p {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .wf-card .status-pill {
+            display: inline-block;
+            margin-top: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        /* Tables */
+        .table-responsive {
+            overflow-x: auto;
+            margin: 20px 0;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        table.doc-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            background: #ffffff;
+            text-align: left;
+        }
+
+        table.doc-table th {
+            background-color: #f8fafc;
+            color: var(--text-heading);
+            padding: 14px 16px;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        table.doc-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+            vertical-align: top;
+        }
+
+        table.doc-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        table.doc-table tr:hover td {
+            background-color: #f1f5f9;
+        }
+
+        /* Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .b-pending { background: #fef3c7; color: #92400e; }
+        .b-approved { background: #dbeafe; color: #1e40af; }
+        .b-ready { background: #dcfce7; color: #166534; }
+        .b-completed { background: #e0e7ff; color: #3730a3; }
+        .b-rejected { background: #fee2e2; color: #991b1b; }
+        .b-cancelled { background: #f3f4f6; color: #4b5563; }
+        .b-role { background: #ede9fe; color: #5b21b6; }
+
+        .type-tag {
+            font-family: 'Fira Code', monospace;
+            font-size: 11.5px;
+            background: #e2e8f0;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .code-inline {
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            background: #f1f5f9;
+            color: #0f766e;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Code Blocks */
+        .code-block {
+            background: var(--code-bg);
+            border-radius: 12px;
+            margin: 18px 0;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        .code-header {
+            background: #1e293b;
+            padding: 10px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #94a3b8;
+            font-size: 12px;
+            font-family: 'Fira Code', monospace;
+            border-bottom: 1px solid #334155;
+        }
+
+        .code-lang {
+            font-weight: 600;
+            color: #38bdf8;
+            text-transform: uppercase;
+        }
+
+        pre {
+            padding: 18px 20px;
+            overflow-x: auto;
+            color: var(--code-text);
+            font-family: 'Fira Code', monospace;
+            font-size: 13.5px;
+            line-height: 1.6;
+        }
+
+        .syntax-keyword { color: #f43f5e; font-weight: 600; }
+        .syntax-fn { color: #38bdf8; }
+        .syntax-string { color: #a7f3d0; }
+        .syntax-comment { color: #64748b; font-style: italic; }
+        .syntax-var { color: #fbbf24; }
+        .syntax-type { color: #c084fc; }
+
+        /* API Badges */
+        .api-method {
+            font-family: 'Fira Code', monospace;
+            font-weight: 700;
+            font-size: 11.5px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            color: #ffffff;
+            display: inline-block;
+        }
+        .method-get { background-color: var(--tag-get); }
+        .method-post { background-color: var(--tag-post); }
+
+        /* Class Card */
+        .class-card {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin: 20px 0;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        .class-card-header {
+            background: #f8fafc;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .class-card-header h4 {
+            margin: 0;
+            font-family: 'Fira Code', monospace;
+            font-size: 16px;
+            color: var(--primary-dark);
+        }
+
+        .class-card-body {
+            padding: 20px;
+        }
+
+        .method-item {
+            margin-bottom: 22px;
+            padding-bottom: 18px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .method-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .method-signature {
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            color: #0f172a;
+            background: #f1f5f9;
+            padding: 8px 14px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Printable Mode */
+        @media print {
+            .sidebar { display: none; }
+            .content-wrapper { margin-left: 0; padding: 20px; }
+            section { page-break-inside: avoid; border: 1px solid #ccc; box-shadow: none; }
+            .hero-banner { background: #094d3e !important; color: #fff !important; }
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 260px;
+            }
+            .content-wrapper {
+                margin-left: 260px;
+                padding: 30px 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .content-wrapper {
+                margin-left: 0;
+                padding: 20px 16px;
+            }
+            .hero-banner {
+                padding: 28px 20px;
+            }
+            .hero-banner h1 {
+                font-size: 24px;
+            }
+            section {
+                padding: 24px 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>🏛️ NPRU Room Docs</h2>
+            <p>ระบบจองห้อง อาคาร C (PHP OOP + MySQL)</p>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-group-title">ภาพรวมระบบ</div>
+            <a href="#overview" class="active"><span>📌</span> บทนำและวัตถุประสงค์</a>
+            <a href="#architecture"><span>📐</span> สถาปัตยกรรมและโครงสร้างไฟล์</a>
+            <a href="#workflow"><span>🔄</span> กระบวนการอนุมัติ 2 ระดับ</a>
+
+            <div class="nav-group-title">ฐานข้อมูลและโมเดล</div>
+            <a href="#database"><span>🗄️</span> โครงสร้างตาราง (Database Schema)</a>
+            <a href="#relationships"><span>🔗</span> ความสัมพันธ์ Entity (ER Relation)</a>
+
+            <div class="nav-group-title">การทำงานเชิงคลาส (OOP Classes)</div>
+            <a href="#class-database"><span>🔌</span> Class Database</a>
+            <a href="#class-auth"><span>🔐</span> Class Auth (สิทธิ์และเซสชัน)</a>
+            <a href="#class-booking"><span>📅</span> Class Booking (ตรรกะการจอง)</a>
+            <a href="#class-room"><span>🚪</span> Class Room (การจัดการห้อง)</a>
+            <a href="#class-notification"><span>🔔</span> Class Notification (แจ้งเตือน)</a>
+
+            <div class="nav-group-title">ตัวแปรและ API เอนด์พอยต์</div>
+            <a href="#variables"><span>📊</span> ดัชนีตัวแปรและเซสชัน (Global Vars)</a>
+            <a href="#api-endpoints"><span>⚡</span> RESTful API & Ajax Endpoints</a>
+
+            <div class="nav-group-title">คู่มือการใช้งาน</div>
+            <a href="#user-manual"><span>👥</span> คู่มือผู้ใช้งาน (นักศึกษา)</a>
+            <a href="#admin-manual"><span>🛡️</span> คู่มือผู้ดูแลระบบและเจ้าหน้าที่</a>
+            <a href="#setup-guide"><span>⚙️</span> การติดตั้งและสภาพแวดล้อม XAMPP</a>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="content-wrapper">
+
+        <!-- HERO BANNER -->
+        <div class="hero-banner">
+            <span class="badge">TECHNICAL DOCUMENTATION & ARCHITECTURE SPECIFICATION</span>
+            <h1>คู่มือเชิงลึก: ระบบจองห้อง อาคาร C</h1>
+            <p>มหาวิทยาลัยราชภัฏนครปฐม (Nakhon Pathom Rajabhat University) &bull; สถาปัตยกรรมระบบ PHP เชิงวัตถุ (Object-Oriented Programming) เชื่อมต่อฐานข้อมูล MySQL ผ่าน PDO พร้อมระบบรักษาความปลอดภัยและระบบแจ้งเตือนแบบเรียลไทม์</p>
+            <div class="meta-chips">
+                <div class="meta-chip"><strong>สถาปัตยกรรม:</strong> PHP 8+ OOP / MVC Separation</div>
+                <div class="meta-chip"><strong>ฐานข้อมูล:</strong> MySQL 8.0 / MariaDB (InnoDB, UTF8mb4)</div>
+                <div class="meta-chip"><strong>สิทธิ์การใช้งาน:</strong> 4 บทบาท (Student, Academic, Building, Admin)</div>
+                <div class="meta-chip"><strong>เวอร์ชันเอกสาร:</strong> 2.0 (Official Specification)</div>
+            </div>
+        </div>
+
+        <!-- SECTION 1: OVERVIEW -->
+        <section id="overview">
+            <h2 class="section-title"><span class="num">1</span> ภาพรวมและวัตถุประสงค์ของระบบ (Overview)</h2>
+            <p>
+                ระบบจองห้อง อาคาร C มหาวิทยาลัยราชภัฏนครปฐม ได้รับการออกแบบขึ้นเพื่อแก้ไขปัญหาความซ้ำซ้อนของการใช้ห้องเรียนและห้องประชุม รวมถึงลดขั้นตอนเอกสารแบบกระดาษ โดยนำระบบคอมพิวเตอร์มาช่วยบริหารจัดการทรัพยากรห้องเรียนในอาคาร C ชั้น 3 อย่างมีประสิทธิภาพสูงสุด
+            </p>
+
+            <div class="callout callout-info">
+                <div class="callout-title">💡 จุดเด่นสำคัญของโครงงานนี้</div>
+                <ul>
+                    <li><strong>ระบบตรวจสอบเวลาซ้อนทับอัตโนมัติ (Anti-Conflict Algorithm):</strong> ป้องกันการจองห้องซ้ำในช่วงเวลาเดียวกันแบบ Real-time ทั้งฝั่งหน้าบ้านและฐานข้อมูล</li>
+                    <li><strong>กระบวนการอนุมัติแบบ 2 ขั้นตอน (Two-Tier Approval Workflow):</strong> ตรวจสอบวัตถุประสงค์โดยฝ่ายวิชาการ ก่อนส่งมอบภารกิจเปิดห้องให้ฝ่ายอาคารสถานที่</li>
+                    <li><strong>การแยกโครงสร้างเชิงวัตถุอย่างชัดเจน (Clean OOP Architecture):</strong> แยกความรับผิดชอบของโค้ด (Single Responsibility) ในรูป Model/Service</li>
+                    <li><strong>ระบบแจ้งเตือนส่วนบุคคล (In-App Notification Hub):</strong> ผู้ใช้งานรับทราบสถานะการอนุมัติและแจ้งเตือนการเปิดห้องทันทีเมื่อเจ้าหน้าที่ดำเนินการ</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- SECTION 2: ARCHITECTURE & DIRECTORY STRUCTURE -->
+        <section id="architecture">
+            <h2 class="section-title"><span class="num">2</span> สถาปัตยกรรมระบบและโครงสร้างไดเรกทอรี (Directory Structure)</h2>
+            <p>
+                โครงงานถูกจัดระเบียบตามหลักการรักษาความปลอดภัย โดยแยกส่วนที่เป็นแกนประมวลผล (Business Logic) ไว้ในโฟลเดอร์ <span class="code-inline">classes/</span> และ <span class="code-inline">config/</span> ขณะที่หน้าเว็บที่สาธารณะเข้าถึงได้จะถูกจัดเก็บไว้ในโฟลเดอร์ <span class="code-inline">public/</span> และหน้าผู้ดูแลจะจำกัดไว้ใน <span class="code-inline">admin/</span>
+            </p>
+
+            <div class="tree-view">
+📁 <span class="tree-folder">projcet008-0036-main/</span> <span class="tree-comment">(Root Project Directory)</span>
+├── 📄 <span class="tree-file">index.php</span> <span class="tree-comment"># ตัวส่งต่อ (Redirection) จาก Root ไปยัง public/ อัตโนมัติ</span>
+├── 📄 <span class="tree-file">database.sql</span> <span class="tree-comment"># สคริปต์ DDL สำหรับสร้างฐานข้อมูล ตาราง และข้อมูลตั้งต้น</span>
+├── 📄 <span class="tree-file">setup_db.php</span> <span class="tree-comment"># สคริปต์อำนวยความสะดวกในการ Auto-Install / Migration</span>
+├── 📄 <span class="tree-file">README.txt</span> <span class="tree-comment"># คำแนะนำเบื้องต้นและการกำหนดค่า</span>
+│
+├── 📁 <span class="tree-folder">config/</span> <span class="tree-comment">(การตั้งค่าระบบและสภาพแวดล้อม)</span>
+│   └── 📄 <span class="tree-file">config.php</span> <span class="tree-comment"># ค่าคงที่ DB, รหัสผ่าน, และฟังก์ชันคำนวณ BASE_URL อัตโนมัติ</span>
+│
+├── 📁 <span class="tree-folder">classes/</span> <span class="tree-comment">(แกนประมวลผลเชิงวัตถุ - Object-Oriented Business Logic)</span>
+│   ├── 📄 <span class="tree-file">Database.php</span> <span class="tree-comment"># คลาสเชื่อมต่อ PDO แบบ Singleton connection</span>
+│   ├── 📄 <span class="tree-file">Auth.php</span> <span class="tree-comment"># คลาสด้านความปลอดภัย พิสูจน์ตัวตน สมัครสมาชิก และสิทธิ์บทบาท</span>
+│   ├── 📄 <span class="tree-file">Room.php</span> <span class="tree-comment"># คลาสจัดการข้อมูลห้องเรียน สถานะ และความพร้อมใช้งาน</span>
+│   ├── 📄 <span class="tree-file">Booking.php</span> <span class="tree-comment"># คลาสหัวใจหลัก คำนวณช่วงเวลา ตรวจสอบการชน บันทึกคำขอ</span>
+│   └── 📄 <span class="tree-file">Notification.php</span> <span class="tree-comment"># คลาสระบบส่งและอ่านการแจ้งเตือนตาม User ID และตาม Role</span>
+│
+├── 📁 <span class="tree-folder">public/</span> <span class="tree-comment">(ส่วนนำเสนอสำหรับนักศึกษาและผู้ใช้ทั่วไป)</span>
+│   ├── 📄 <span class="tree-file">index.php</span> <span class="tree-comment"># หน้าแรก: ปฏิทินแสดงผล, ค้นหาห้อง, รายการห้อง และแบบฟอร์มขอจอง</span>
+│   ├── 📄 <span class="tree-file">login.php</span> <span class="tree-comment"># หน้าเข้าสู่ระบบสำหรับนักศึกษาและเจ้าหน้าที่</span>
+│   ├── 📄 <span class="tree-file">register.php</span> <span class="tree-comment"># หน้าลงทะเบียนนักศึกษาใหม่ (ตรวจความถูกต้องรหัส 9 หลัก)</span>
+│   ├── 📄 <span class="tree-file">my-bookings.php</span> <span class="tree-comment"># หน้าดูประวัติคำขอของตนเอง และยกเลิกคำขอที่รออนุมัติ</span>
+│   ├── 📄 <span class="tree-file">history.php</span> <span class="tree-comment"># หน้ารายการบันทึกประวัติการจองทั้งหมดในระบบ</span>
+│   ├── 📄 <span class="tree-file">logout.php</span> <span class="tree-comment"># สคริปต์ทำลายเซสชันและลบคุกกี้อย่างปลอดภัย</span>
+│   │
+│   ├── 📁 <span class="tree-folder">api/</span> <span class="tree-comment">(Ajax Endpoints คืนค่าผลลัพธ์เป็น JSON)</span>
+│   │   ├── 📄 <span class="tree-file">get_room_schedule.php</span> <span class="tree-comment"># API ดึงตารางเวลา Time-Slot (08:00 - 18:00)</span>
+│   │   └── 📄 <span class="tree-file">notifications.php</span> <span class="tree-comment"># API โหลดรายการแจ้งเตือนและอัปเดตสถานะการอ่าน</span>
+│   │
+│   ├── 📁 <span class="tree-folder">css/</span>
+│   │   └── 📄 <span class="tree-file">style.css</span> <span class="tree-comment"># ไฟล์สไตล์หลัก ดีไซน์โมเดิร์น โทนสีเขียวมหาวิทยาลัย NPRU</span>
+│   │
+│   ├── 📁 <span class="tree-folder">js/</span>
+│   │   └── 📄 <span class="tree-file">app.js</span> <span class="tree-comment"># ตรรกะฝั่งหน้าบ้าน: ปฏิทินไดนามิก, สลับห้อง, เลือกช่องเวลา, Ajax</span>
+│   │
+│   └── 📁 <span class="tree-folder">images/</span> <span class="tree-comment"># รูปภาพห้องเรียน โลโก้ และแผนที่ผังห้องอาคาร C</span>
+│
+└── 📁 <span class="tree-folder">admin/</span> <span class="tree-comment">(แดชบอร์ดบริหารจัดการสำหรับเจ้าหน้าที่และผู้ดูแลระบบ)</span>
+    └── 📄 <span class="tree-file">index.php</span> <span class="tree-comment"># ศูนย์กลางอนุมัติงานวิชาการ, เปิดห้องฝ่ายอาคาร, จัดการสถานะห้อง</span>
+            </div>
+        </section>
+
+        <!-- SECTION 3: WORKFLOW -->
+        <section id="workflow">
+            <h2 class="section-title"><span class="num">3</span> วงจรชีวิตคำขอและการอนุมัติ 2 ระดับ (Two-Tier Approval Lifecycle)</h2>
+            <p>
+                จุดเด่นด้านการทำงานของระบบนี้ คือการจำลองขั้นตอนการปฏิบัติงานจริงของมหาวิทยาลัย ที่ต้องมีการตรวจทานความถูกต้องด้านการเรียนการสอนก่อน แล้วจึงส่งต่อให้ฝ่ายอาคารสถานที่จัดเตรียมแม่บ้านและช่างเปิดห้อง:
+            </p>
+
+            <div class="workflow-grid">
+                <div class="wf-card">
+                    <div class="wf-step-badge">1</div>
+                    <h4>ส่งคำขอจองห้อง</h4>
+                    <p>นักศึกษาหรืออาจารย์เลือกห้อง ระบุหัวข้อการใช้งาน วันที่ และช่วงเวลา ระบบตรวจสอบการชนของเวลาอัตโนมัติ</p>
+                    <span class="status-pill b-pending">status: pending</span>
+                </div>
+                <div class="wf-card">
+                    <div class="wf-step-badge">2</div>
+                    <h4>ฝ่ายวิชาการพิจารณา</h4>
+                    <p>เจ้าหน้าที่ฝ่ายวิชาการ (Academic Staff) ตรวจสอบวัตถุประสงค์ ความเหมาะสม และพิจารณา "อนุมัติ" หรือ "ปฏิเสธ"</p>
+                    <span class="status-pill b-approved">status: approved / rejected</span>
+                </div>
+                <div class="wf-card">
+                    <div class="wf-step-badge">3</div>
+                    <h4>ฝ่ายอาคารเปิดห้อง</h4>
+                    <p>เจ้าหน้าที่ฝ่ายอาคาร (Building Staff) ได้รับการแจ้งเตือน นำกุญแจไปเปิดห้อง เปิดแอร์ และตรวจสอบความพร้อม</p>
+                    <span class="status-pill b-ready">status: ready</span>
+                </div>
+                <div class="wf-card">
+                    <div class="wf-step-badge">4</div>
+                    <h4>เข้าใช้งานและเสร็จสิ้น</h4>
+                    <p>ผู้จองได้รับการแจ้งเตือนพร้อมสัญลักษณ์กุญแจ เข้าใช้ห้องตามเวลา เมื่อหมดเวลาสถานะจะเปลี่ยนเป็นเสร็จสิ้น</p>
+                    <span class="status-pill b-completed">status: completed</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: DATABASE SCHEMA -->
+        <section id="database">
+            <h2 class="section-title"><span class="num">4</span> โครงสร้างฐานข้อมูลอย่างละเอียด (Database Schema)</h2>
+            <p>ระบบใช้ฐานข้อมูลชื่อ <span class="code-inline">npru_room_booking</span> ด้วยชุดอักขระ <span class="code-inline">utf8mb4_unicode_ci</span> รองรับภาษาไทยสมบูรณ์ ประกอบด้วย 4 ตารางหลัก:</p>
+
+            <!-- Table 1: rooms -->
+            <h3 class="sub-title">ตารางที่ 1: <code>rooms</code> (ตารางข้อมูลห้องเรียน/ห้องประชุม)</h3>
+            <div class="table-responsive">
+                <table class="doc-table">
+                    <thead>
+                        <tr>
+                            <th>ชื่อคอลัมน์ (Column)</th>
+                            <th>ชนิดข้อมูล (Type)</th>
+                            <th>Null</th>
+                            <th>ค่าเริ่มต้น (Default)</th>
+                            <th>คำอธิบายความหมายและการใช้งาน</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>id</strong></td>
+                            <td><span class="type-tag">INT</span></td>
+                            <td>NO</td>
+                            <td>AUTO_INCREMENT</td>
+                            <td>รหัสประจำห้อง (Primary Key)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>room_code</strong></td>
+                            <td><span class="type-tag">VARCHAR(10)</span></td>
+                            <td>NO</td>
+                            <td>-</td>
+                            <td>รหัสห้อง เช่น C301, C302 (กำหนดเป็น UNIQUE ป้องกันรหัสซ้ำ)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>room_name</strong></td>
+                            <td><span class="type-tag">VARCHAR(100)</span></td>
+                            <td>NO</td>
+                            <td>-</td>
+                            <td>ชื่อห้อง เช่น "ห้องประชุมใหญ่", "ห้องเรียนปฏิบัติการ C305"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>building</strong></td>
+                            <td><span class="type-tag">VARCHAR(50)</span></td>
+                            <td>NO</td>
+                            <td>'อาคาร C'</td>
+                            <td>ชื่ออาคารสถานที่ตั้งของห้อง</td>
+                        </tr>
+                        <tr>
+                            <td><strong>room_type</strong></td>
+                            <td><span class="type-tag">VARCHAR(50)</span></td>
+                            <td>NO</td>
+                            <td>-</td>
+                            <td>ประเภทห้อง เช่น 'ห้องประชุม', 'ห้องเรียน' สำหรับใช้ตัวกรอง Filter</td>
+                        </tr>
+                        <tr>
+                            <td><strong>capacity</strong></td>
+                            <td><span class="type-tag">INT</span></td>
+                            <td>NO</td>
+                            <td>40</td>
+                            <td>จำนวนที่นั่งสูงสุด (ระบบใช้ Validate จำนวนคนขอจองไม่ให้เกินความจุนี้)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>floor</strong></td>
+                            <td><span class="type-tag">VARCHAR(20)</span></td>
+                            <td>YES</td>
+                            <td>'ชั้น 3'</td>
+                            <td>ชั้นที่ตั้งห้อง</td>
+                        </tr>
+                        <tr>
+                            <td><strong>facilities</strong></td>
+                            <td><span class="type-tag">VARCHAR(255)</span></td>
+                            <td>YES</td>
+                            <td>'โปรเจกเตอร์, ...'</td>
+                            <td>สิ่งอำนวยความสะดวก คั่นด้วยเครื่องหมายจุลภาค (,) เพื่อตัดเป็น Tag บน UI</td>
+                        </tr>
+                        <tr>
+                            <td><strong>status</strong></td>
+                            <td><span class="type-tag">ENUM</span></td>
+                            <td>YES</td>
+                            <td>'available'</td>
+                            <td>สถานะห้อง: <span class="code-inline">'available'</span> (พร้อมใช้), <span class="code-inline">'maintenance'</span> (ปิดปรับปรุง)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Table 2: users -->
+            <h3 class="sub-title">ตารางที่ 2: <code>users</code> (ตารางบัญชีผู้ใช้งานและเจ้าหน้าที่)</h3>
+            <div class="table-responsive">
+                <table class="doc-table">
+                    <thead>
+                        <tr>
+                            <th>ชื่อคอลัมน์ (Column)</th>
+                            <th>ชนิดข้อมูล (Type)</th>
+                            <th>Null</th>
+                            <th>คำอธิบายความหมายและการใช้งาน</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>id</strong></td>
+                            <td><span class="type-tag">INT</span></td>
+                            <td>NO</td>
+                            <td>รหัสผู้ใช้งาน (Primary Key)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>student_id</strong></td>
+                            <td><span class="type-tag">VARCHAR(20)</span></td>
+                            <td>YES</td>
+                            <td>รหัสนักศึกษา 9 หลัก (เช่น 674230036) กำหนดเป็น UNIQUE สำหรับนักศึกษา (Staff จะเป็น NULL)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>name</strong></td>
+                            <td><span class="type-tag">VARCHAR(100)</span></td>
+                            <td>NO</td>
+                            <td>ชื่อ - นามสกุลจริงของผู้ใช้งาน</td>
+                        </tr>
+                        <tr>
+                            <td><strong>email</strong></td>
+                            <td><span class="type-tag">VARCHAR(150)</span></td>
+                            <td>NO</td>
+                            <td>อีเมลมหาวิทยาลัย (เช่น 674230036@webmail.npru.ac.th หรือ admin@npru.ac.th) UNIQUE</td>
+                        </tr>
+                        <tr>
+                            <td><strong>password</strong></td>
+                            <td><span class="type-tag">VARCHAR(255)</span></td>
+                            <td>NO</td>
+                            <td>รหัสผ่านที่ผ่านการแฮชแบบความปลอดภัยสูงด้วย <span class="code-inline">password_hash(..., PASSWORD_DEFAULT)</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>phone</strong></td>
+                            <td><span class="type-tag">VARCHAR(20)</span></td>
+                            <td>YES</td>
+                            <td>เบอร์โทรศัพท์สำหรับติดต่อกรณีฉุกเฉินหรือประสานงานห้อง</td>
+                        </tr>
+                        <tr>
+                            <td><strong>role</strong></td>
+                            <td><span class="type-tag">ENUM</span></td>
+                            <td>YES</td>
+                            <td>
+                                สิทธิ์ในระบบ:
+                                <ul>
+                                    <li><span class="status-badge b-role">student</span> = นักศึกษาทั่วไป ยื่นจองและดูสถานะ</li>
+                                    <li><span class="status-badge b-role">academic</span> = เจ้าหน้าที่ฝ่ายวิชาการ อนุมัติเบื้องต้น</li>
+                                    <li><span class="status-badge b-role">building</span> = เจ้าหน้าที่ฝ่ายอาคาร ยืนยันเปิดห้อง</li>
+                                    <li><span class="status-badge b-role">admin</span> = ผู้ดูแลระบบสูงสุด ควบคุมได้ทุกฟังก์ชัน</li>
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>created_at</strong></td>
+                            <td><span class="type-tag">TIMESTAMP</span></td>
+                            <td>YES</td>
+                            <td>วันเวลาที่ลงทะเบียนสมัครสมาชิก</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Table 3: bookings -->
+            <h3 class="sub-title">ตารางที่ 3: <code>bookings</code> (ตารางประวัติและการทำธุรกรรมจองห้อง)</h3>
+            <div class="table-responsive">
+                <table class="doc-table">
+                    <thead>
+                        <tr>
+                            <th>ชื่อคอลัมน์ (Column)</th>
+                            <th>ชนิดข้อมูล (Type)</th>
+                            <th>FK Constraint</th>
+                            <th>คำอธิบายความหมายและการใช้งาน</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>id</strong></td>
+                            <td><span class="type-tag">INT</span></td>
+                            <td>Primary Key</td>
+                            <td>เลขที่คำขอจอง (Booking Reference ID)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>room_id</strong></td>
+                            <td><span class="type-tag">INT</span></td>
+                            <td>FK &rarr; rooms(id) ON DELETE CASCADE</td>
+                            <td>รหัสห้องที่ต้องการจอง</td>
+                        </tr>
+                        <tr>
+                            <td><strong>user_id</strong></td>
+                            <td><span class="type-tag">INT</span></td>
+                            <td>FK &rarr; users(id) ON DELETE SET NULL</td>
+                            <td>รหัสผู้ใช้งานที่ทำการส่งคำขอ (ถ้าไม่ได้ล็อกอินจะเป็น NULL)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>requester_name</strong></td>
+                            <td><span class="type-tag">VARCHAR(100)</span></td>
+                            <td>-</td>
+                            <td>ชื่อผู้ขอจอง (บันทึก Snapshot ไว้ แม้บัญชีผู้ใช้จะถูกแก้ไขในภายหลัง)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>requester_email</strong></td>
+                            <td><span class="type-tag">VARCHAR(150)</span></td>
+                            <td>-</td>
+                            <td>อีเมลผู้ขอจอง สำหรับใช้แมปข้อมูลและการแจ้งเตือน</td>
+                        </tr>
+                        <tr>
+                            <td><strong>requester_phone</strong></td>
+                            <td><span class="type-tag">VARCHAR(20)</span></td>
+                            <td>-</td>
+                            <td>เบอร์โทรติดต่อผู้ขอจอง</td>
+                        </tr>
+                        <tr>
+                            <td><strong>topic</strong></td>
+                            <td><span class="type-tag">VARCHAR(255)</span></td>
+                            <td>-</td>
+                            <td>หัวข้อหรือวัตถุประสงค์ในการใช้ห้อง เช่น "อบรมโครงงานไอทีปี 4"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>booking_date</strong></td>
+                            <td><span class="type-tag">DATE</span></td>
+                            <td>INDEX idx_booking_date</td>
+                            <td>วันที่ต้องการใช้ห้อง (รูปแบบ YYYY-MM-DD)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>start_time</strong></td>
+                            <td><span class="type-tag">TIME</span></td>
+                            <td>-</td>
+                            <td>เวลาเริ่มต้นใช้งานห้อง เช่น 09:00:00</td>
+                        </tr>
+                        <tr>
+                            <td><strong>end_time</strong></td>
+                            <td><span class="type-tag">TIME</span></td>
+                            <td>-</td>
+                            <td>เวลาสิ้นสุดการใช้ห้อง เช่น 12:00:00</td>
+                        </tr>
+                        <tr>
+                            <td><strong>people</strong></td>
+                            <td><span class="type-tag">INT</span></td>
+                            <td>-</td>
+                            <td>จำนวนผู้เข้าร่วมประชุมหรือผู้เรียนจริง</td>
+                        </tr>
+                        <tr>
+                            <td><strong>status</strong></td>
+                            <td><span class="type-tag">ENUM</span></td>
+                            <td>INDEX idx_status</td>
+                            <td>
+                                สถานะของคำขอ:
+                                <span class="status-badge b-pending">pending</span> (รอวิชาการตรวจ),
+                                <span class="status-badge b-approved">approved</span> (วิชาการอนุมัติแล้ว),
+                                <span class="status-badge b-ready">ready</span> (อาคารเปิดห้องแล้ว),
+                                <span class="status-badge b-rejected">rejected</span> (ปฏิเสธ),
+                                <span class="status-badge b-cancelled">cancelled</span> (ผู้ใช้ยกเลิกเอง)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>academic_notes</strong></td>
+                            <td><span class="type-tag">VARCHAR(255)</span></td>
+                            <td>-</td>
+                            <td>หมายเหตุหรือข้อความจากฝ่ายวิชาการ (เช่น "อนุมัติเพื่อการเรียนการสอนเสริม")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>building_notes</strong></td>
+                            <td><span class="type-tag">VARCHAR(255)</span></td>
+                            <td>-</td>
+                            <td>หมายเหตุจากฝ่ายอาคาร (เช่น "เปิดประตูห้องและแอร์ไว้ให้เรียบร้อยแล้ว")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>created_at</strong></td>
+                            <td><span class="type-tag">TIMESTAMP</span></td>
+                            <td>-</td>
+                            <td>วันเวลาที่ทำการส่งคำขอจองเข้าสู่ระบบ</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Table 4: notifications -->
+            <h3 class="sub-title">ตารางที่ 4: <code>notifications</code> (ตารางแจ้งเตือนความคืบหน้าคำขอ)</h3>
+            <div class="table-responsive">
+                <table class="doc-table">
+                    <thead>
+                        <tr>
+                            <th>ชื่อคอลัมน์ (Column)</th>
+                            <th>ชนิดข้อมูล (Type)</th>
+                            <th>คำอธิบายความหมายและการใช้งาน</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>id</strong></td>
+                            <td><span class="type-tag">INT</span></td>
+                            <td>รหัสการแจ้งเตือน (Primary Key)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>user_id</strong></td>
+                            <td><span class="type-tag">INT</span></td>
+                            <td>รหัสผู้รับการแจ้งเตือน (FK &rarr; users.id ON DELETE CASCADE)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>booking_id</strong></td>
+                            <td><span class="type-tag">INT</span></td>
+                            <td>รหัสคำขอจองที่เกี่ยวข้อง (FK &rarr; bookings.id ON DELETE SET NULL)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>title</strong></td>
+                            <td><span class="type-tag">VARCHAR(150)</span></td>
+                            <td>หัวข้อแจ้งเตือน เช่น "🎉 คำขอจองห้อง C301 ได้รับการอนุมัติแล้ว"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>message</strong></td>
+                            <td><span class="type-tag">TEXT</span></td>
+                            <td>เนื้อหารายละเอียดของข้อความแจ้งเตือน</td>
+                        </tr>
+                        <tr>
+                            <td><strong>type</strong></td>
+                            <td><span class="type-tag">ENUM</span></td>
+                            <td>หมวดหมู่การแจ้งเตือน: <span class="code-inline">'info'</span>, <span class="code-inline">'approved'</span>, <span class="code-inline">'ready'</span>, <span class="code-inline">'rejected'</span>, <span class="code-inline">'new_booking'</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>is_read</strong></td>
+                            <td><span class="type-tag">TINYINT(1)</span></td>
+                            <td>สถานะการอ่าน: 0 = ยังไม่ได้อ่าน (Unread), 1 = อ่านแล้ว (Read)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>created_at</strong></td>
+                            <td><span class="type-tag">TIMESTAMP</span></td>
+                            <td>วันเวลาที่ข้อความถูกสร้างขึ้น</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECTION 5: ENTITY RELATIONSHIPS -->
+        <section id="relationships">
+            <h2 class="section-title"><span class="num">5</span> ความสัมพันธ์ระหว่างตาราง (Entity Relationships)</h2>
+            <div class="callout callout-info">
+                <div class="callout-title">ความสัมพันธ์เชิงตรรกะ (Relational Constraints)</div>
+                <ul style="padding-left: 20px;">
+                    <li><strong>rooms (1) &mdash; (M) bookings:</strong> หนึ่งห้องสามารถมีการจองได้หลายช่วงเวลา เชื่อมโยงผ่าน <span class="code-inline">bookings.room_id &rarr; rooms.id</span> (เมื่อห้องถูกลบ รายการจองจะ CASCADE)</li>
+                    <li><strong>users (1) &mdash; (M) bookings:</strong> หนึ่งผู้ใช้งานสามารถส่งคำขอจองได้หลายครั้ง เชื่อมโยงผ่าน <span class="code-inline">bookings.user_id &rarr; users.id</span> (เมื่อผู้ใช้ถูกลบ จะ SET NULL เพื่อคงประวัติการใช้ห้องไว้)</li>
+                    <li><strong>users (1) &mdash; (M) notifications:</strong> หนึ่งผู้ใช้งานมีรายการแจ้งเตือนได้หลายรายการ เชื่อมโยงผ่าน <span class="code-inline">notifications.user_id &rarr; users.id</span></li>
+                    <li><strong>bookings (1) &mdash; (M) notifications:</strong> แต่ละคำขอจองอาจสร้างการแจ้งเตือนหลายฉบับ (ยื่นคำขอ &rarr; วิชาการอนุมัติ &rarr; อาคารเปิดห้อง)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- SECTION 6: OOP CLASSES EXPLAINED -->
+        <section id="class-database">
+            <h2 class="section-title"><span class="num">6</span> รายละเอียดคลาส Database (Database.php)</h2>
+            <p>ทำหน้าที่จัดการการเชื่อมต่อไปยัง MySQL Server ด้วยโมเดล PHP Data Objects (PDO) ช่วยป้องกัน SQL Injection 100%:</p>
+
+            <div class="class-card">
+                <div class="class-card-header">
+                    <h4>class Database</h4>
+                    <span class="type-tag">classes/Database.php</span>
+                </div>
+                <div class="class-card-body">
+                    <div class="method-item">
+                        <div class="method-signature">
+                            <span class="syntax-keyword">public function</span> <span class="syntax-fn">connect</span>(): <span class="syntax-type">PDO</span>
+                        </div>
+                        <p><strong>หน้าที่:</strong> สร้างและส่งคืนอ็อบเจกต์ <span class="code-inline">PDO</span> หากยังไม่มีการเชื่อมต่อ จะสร้าง DSN พร้อมเปิดใช้งานโหมด Exception และ Default Fetch Mode เป็น <span class="code-inline">PDO::FETCH_ASSOC</span></p>
+                        <p><strong>ตัวแปรภายในคลาส:</strong></p>
+                        <ul>
+                            <li><span class="code-inline">$host</span> : เก็บชื่อ Hostname (ดึงค่าจาก DB_HOST เช่น 'localhost')</li>
+                            <li><span class="code-inline">$dbName</span> : เก็บชื่อฐานข้อมูล (ดึงจาก DB_NAME = 'npru_room_booking')</li>
+                            <li><span class="code-inline">$username</span> : ชื่อผู้ใช้ฐานข้อมูล (DB_USER = 'root')</li>
+                            <li><span class="code-inline">$password</span> : รหัสผ่านฐานข้อมูล (DB_PASS)</li>
+                            <li><span class="code-inline">$conn</span> : ตัวแปรเก็บ Instance ของ PDO ป้องกันการเปิด Connection ซ้ำซ้อน</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 7: AUTH CLASS -->
+        <section id="class-auth">
+            <h2 class="section-title"><span class="num">7</span> รายละเอียดคลาส Auth (Auth.php)</h2>
+            <p>รับผิดชอบกระบวนการ Authentication, Authorization และ Session Management ทั้งหมดในระบบ:</p>
+
+            <div class="class-card">
+                <div class="class-card-header">
+                    <h4>class Auth (Static Security Manager)</h4>
+                    <span class="type-tag">classes/Auth.php</span>
+                </div>
+                <div class="class-card-body">
+
+                    <div class="method-item">
+                        <div class="method-signature">
+                            <span class="syntax-keyword">public static function</span> <span class="syntax-fn">start</span>(): <span class="syntax-type">void</span>
+                        </div>
+                        <p>ตรวจสอบและเริ่มต้น Session (<span class="code-inline">session_start()</span>) อย่างปลอดภัย โดยตรวจสอบก่อนว่าเซสชันเริ่มแล้วหรือยัง และเฮดเดอร์ถูกส่งไปแล้วหรือไม่</p>
+                    </div>
+
+                    <div class="method-item">
+                        <div class="method-signature">
+                            <span class="syntax-keyword">public static function</span> <span class="syntax-fn">login</span>(<span class="syntax-type">string</span> <span class="syntax-var">$identifier</span>, <span class="syntax-type">string</span> <span class="syntax-var">$password</span>): <span class="syntax-type">bool</span>
+                        </div>
+                        <p><strong>พารามิเตอร์:</strong></p>
+                        <ul>
+                            <li><span class="code-inline">$identifier</span> : รับค่าอีเมล หรือรหัสนักศึกษา หรือ username ของเจ้าหน้าที่</li>
+                            <li><span class="code-inline">$password</span> : รหัสผ่านตัวจริงที่ส่งมาจากฟอร์ม</li>
+                        </ul>
+                        <p><strong>ขั้นตอนการทำงาน:</strong> ค้นหาผู้ใช้จากตาราง <span class="code-inline">users</span> แล้วใช้คำสั่ง <span class="code-inline">password_verify()</span> เปรียบเทียบกับรหัสผ่านที่แฮชไว้ หากถูกต้อง จะเซ็ตตัวแปรเซสชัน <span class="code-inline">$_SESSION['user']</span> และคืนค่า <span class="code-inline">true</span></p>
+                    </div>
+
+                    <div class="method-item">
+                        <div class="method-signature">
+                            <span class="syntax-keyword">public static function</span> <span class="syntax-fn">register</span>(<span class="syntax-type">array</span> <span class="syntax-var">$data</span>): <span class="syntax-type">array</span>
+                        </div>
+                        <p><strong>พารามิเตอร์:</strong> อาเรย์ข้อมูลที่มีคีย์ <span class="code-inline">student_id, name, email, password, confirm_password, phone</span></p>
+                        <p><strong>การตรวจสอบความถูกต้อง (Validation):</strong></p>
+                        <ul>
+                            <li>ตรวจสอบรหัสนักศึกษาต้องเป็นตัวเลข 9 หลักพอดี (<span class="code-inline">/^[0-9]{9}$/</span>)</li>
+                            <li>หากไม่กรอกอีเมล ระบบจะสร้างอีเมลอัตโนมัติเป็น <span class="code-inline">[student_id]@webmail.npru.ac.th</span></li>
+                            <li>ตรวจสอบความยาวรหัสผ่านไม่ต่ำกว่า 4 ตัวอักษร และต้องตรงกับช่องยืนยัน</li>
+                            <li>ตรวจสอบความซ้ำซ้อนในฐานข้อมูลก่อนทำการ INSERT</li>
+                        </ul>
+                    </div>
+
+                    <div class="method-item">
+                        <div class="method-signature">
+                            <span class="syntax-keyword">public static function</span> <span class="syntax-fn">user</span>(): <span class="syntax-type">?array</span>
+                        </div>
+                        <p>ส่งคืนข้อมูลของผู้ใช้ปัจจุบันที่ล็อกอินอยู่ในเซสชัน หากยังไม่ล็อกอินจะคืนค่า <span class="code-inline">null</span></p>
+                    </div>
+
+                    <div class="method-item">
+                        <div class="method-signature">
+                            <span class="syntax-keyword">public static function</span> <span class="syntax-fn">isAdmin</span>(): <span class="syntax-type">bool</span> / <span class="syntax-fn">isStaff</span>(): <span class="syntax-type">bool</span>
+                        </div>
+                        <p>ตรวจสอบระดับสิทธิ์: <span class="code-inline">isAdmin()</span> ตรวจว่าเป็น 'admin' หรือไม่ ส่วน <span class="code-inline">isStaff()</span> ตรวจว่าอยู่ในกลุ่ม ['admin', 'academic', 'building'] หรือไม่</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 8: BOOKING CLASS -->
+        <section id="class-booking">
+            <h2 class="section-title"><span class="num">8</span> รายละเอียดคลาส Booking (Booking.php)</h2>
+            <p>เป็นคลาสที่สำคัญที่สุดในการควบคุมกฎเกณฑ์ทางธุรกิจ (Business Rules) และการประมวลผลช่วงเวลา:</p>
+
+            <div class="class-card">
+                <div class="class-card-header">
+                    <h4>class Booking (Core Logic Engine)</h4>
+                    <span class="type-tag">classes/Booking.php</span>
+                </div>
+                <div class="class-card-body">
+
+                    <div class="method-item">
+                        <div class="method-signature">
+                            <span class="syntax-keyword">public function</span> <span class="syntax-fn">isConflict</span>(<span class="syntax-type">int</span> <span class="syntax-var">$roomId</span>, <span class="syntax-type">string</span> <span class="syntax-var">$date</span>, <span class="syntax-type">string</span> <span class="syntax-var">$start</span>, <span class="syntax-type">string</span> <span class="syntax-var">$end</span>, ?<span class="syntax-type">int</span> <span class="syntax-var">$excludeId</span> = <span class="syntax-keyword">null</span>): <span class="syntax-type">bool</span>
+                        </div>
+                        <p><strong>อัลกอริทึมตรวจสอบเวลาชน (Interval Collision Algorithm):</strong></p>
+                        <p>ช่วงเวลาสองช่วงจะซ้อนทับกันก็ต่อเมื่อ <em>เวลาเริ่มต้นของรายการใหม่ น้อยกว่าเวลาสิ้นสุดของรายการเดิม และเวลาสิ้นสุดของรายการใหม่ มากกว่าเวลาเริ่มต้นของรายการเดิม</em></p>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span>SQL Conflict Logic</span>
+                                <span class="code-lang">SQL</span>
+                            </div>
+                            <pre><code><span class="syntax-keyword">SELECT</span> COUNT(*) <span class="syntax-keyword">FROM</span> bookings
+<span class="syntax-keyword">WHERE</span> room_id = ?
+  <span class="syntax-keyword">AND</span> booking_date = ?
+  <span class="syntax-keyword">AND</span> status <span class="syntax-keyword">IN</span> (<span class="syntax-string">'pending'</span>, <span class="syntax-string">'approved'</span>, <span class="syntax-string">'ready'</span>)
+  <span class="syntax-keyword">AND</span> (start_time < ? <span class="syntax-keyword">AND</span> end_time > ?)</code></pre>
+                        </div>
+                        <p>หากพบว่ามีรายการที่ตรงเงื่อนไข ฟังก์ชันจะคืนค่า <span class="code-inline">true</span> (เวลาชน ไม่สามารถจองได้)</p>
+                    </div>
+
+                    <div class="method-item">
+                        <div class="method-signature">
+                            <span class="syntax-keyword">public function</span> <span class="syntax-fn">create</span>(<span class="syntax-type">int</span> <span class="syntax-var">$roomId</span>, ?<span class="syntax-type">int</span> <span class="syntax-var">$userId</span>, <span class="syntax-type">string</span> <span class="syntax-var">$name</span>, <span class="syntax-type">string</span> <span class="syntax-var">$email</span>, <span class="syntax-type">string</span> <span class="syntax-var">$phone</span>, <span class="syntax-type">string</span> <span class="syntax-var">$topic</span>, <span class="syntax-type">string</span> <span class="syntax-var">$date</span>, <span class="syntax-type">string</span> <span class="syntax-var">$start</span>, <span class="syntax-type">string</span> <span class="syntax-var">$end</span>, <span class="syntax-type">int</span> <span class="syntax-var">$people</span>): <span class="syntax-type">array</span>
+                        </div>
+                        <p><strong>กฎการตรวจสอบก่อนบันทึก (Validation Pipeline):</strong></p>
+                        <ol style="padding-left: 20px; line-height: 1.8;">
+                            <li>ตรวจความว่างเปล่าของฟิลด์จำเป็น (ชื่อ, อีเมล, วัตถุประสงค์)</li>
+                            <li>ตรวจรูปแบบอีเมลด้วย <span class="code-inline">FILTER_VALIDATE_EMAIL</span></li>
+                            <li>ตรวจเวลา: เวลาเริ่มต้นต้องน้อยกว่าเวลาสิ้นสุดเสมอ (<span class="code-inline">strtotime($start) &lt; strtotime($end)</span>)</li>
+                            <li>ตรวจวันที่: ไม่อนุญาตให้เลือกวันย้อนหลังในอดีต</li>
+                            <li>ตรวจสถานะห้อง: หากห้องมีสถานะ <span class="code-inline">'maintenance'</span> จะปฏิเสธการจองทันที</li>
+                            <li>ตรวจความจุ: จำนวนคน (<span class="code-inline">$people</span>) ต้องไม่เกินค่า <span class="code-inline">capacity</span> ของห้องนั้น</li>
+                            <li>เรียก <span class="code-inline">isConflict()</span> เพื่อยืนยันว่าไม่มีการจองซ้อนทับ</li>
+                        </ol>
+                    </div>
+
+                    <div class="method-item">
+                        <div class="method-signature">
+                            <span class="syntax-keyword">public function</span> <span class="syntax-fn">updateStatus</span>(<span class="syntax-type">int</span> <span class="syntax-var">$bookingId</span>, <span class="syntax-type">string</span> <span class="syntax-var">$status</span>, ?<span class="syntax-type">string</span> <span class="syntax-var">$notes</span> = <span class="syntax-keyword">null</span>, ?<span class="syntax-type">string</span> <span class="syntax-var">$role</span> = <span class="syntax-keyword">null</span>): <span class="syntax-type">bool</span>
+                        </div>
+                        <p>อัปเดตสถานะของคำขอตามบทบาท โดยหากผู้กระทำเป็น <span class="code-inline">'academic'</span> ข้อความบันทึกจะถูกเก็บลงฟิลด์ <span class="code-inline">academic_notes</span> หากเป็น <span class="code-inline">'building'</span> จะถูกเก็บลงฟิลด์ <span class="code-inline">building_notes</span></p>
+                    </div>
+
+                    <div class="method-item">
+                        <div class="method-signature">
+                            <span class="syntax-keyword">public function</span> <span class="syntax-fn">getRoomOccupancyToday</span>(<span class="syntax-type">int</span> <span class="syntax-var">$roomId</span>): <span class="syntax-type">array</span>
+                        </div>
+                        <p>คำนวณการใช้งานห้องของวันนี้ในระดับ Real-time โดยเปรียบเทียบเวลาปัจจุบันของ Server (<span class="code-inline">date('H:i:s')</span>) กับช่วงเวลาที่ได้รับการอนุมัติ เพื่อระบุว่าห้องดังกล่าวกำลังมีคนใช้งานอยู่ ณ นาทีนี้หรือไม่ (<span class="code-inline">is_occupied_now</span>)</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 9: ROOM CLASS -->
+        <section id="class-room">
+            <h2 class="section-title"><span class="num">9</span> รายละเอียดคลาส Room (Room.php)</h2>
+            <div class="class-card">
+                <div class="class-card-header">
+                    <h4>class Room</h4>
+                    <span class="type-tag">classes/Room.php</span>
+                </div>
+                <div class="class-card-body">
+                    <div class="method-item">
+                        <div class="method-signature">
+                            <span class="syntax-keyword">public function</span> <span class="syntax-fn">getAll</span>(): <span class="syntax-type">array</span>
+                        </div>
+                        <p>ดึงรายการห้องทั้งหมดในอาคาร C เรียงลำดับตามรหัสห้อง (<span class="code-inline">room_code ASC</span>)</p>
+                    </div>
+                    <div class="method-item">
+                        <div class="method-signature">
+                            <span class="syntax-keyword">public function</span> <span class="syntax-fn">getRoomsWithAvailability</span>(<span class="syntax-type">Booking</span> <span class="syntax-var">$bookingModel</span>): <span class="syntax-type">array</span>
+                        </div>
+                        <p>ประมวลผลข้อมูลห้องพร้อมแนบสถานะความพร้อมใช้งานในวันนี้ เช่น สถานะว่างตอนนี้, จำนวนรายการที่จองในวันนี้ เพื่อให้หน้าเว็บนำไปแสดงผลแถบ Badge "ว่าง" หรือ "มีการใช้งาน" ได้ทันที</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 10: NOTIFICATION CLASS -->
+        <section id="class-notification">
+            <h2 class="section-title"><span class="num">10</span> รายละเอียดคลาส Notification (Notification.php)</h2>
+            <div class="class-card">
+                <div class="class-card-header">
+                    <h4>class Notification (Notification Dispatcher)</h4>
+                    <span class="type-tag">classes/Notification.php</span>
+                </div>
+                <div class="class-card-body">
+                    <div class="method-item">
+                        <div class="method-signature">
+                            <span class="syntax-keyword">public function</span> <span class="syntax-fn">create</span>(<span class="syntax-type">int</span> <span class="syntax-var">$userId</span>, ?<span class="syntax-type">int</span> <span class="syntax-var">$bookingId</span>, <span class="syntax-type">string</span> <span class="syntax-var">$title</span>, <span class="syntax-type">string</span> <span class="syntax-var">$message</span>, <span class="syntax-type">string</span> <span class="syntax-var">$type</span> = <span class="syntax-string">'info'</span>): <span class="syntax-type">bool</span>
+                        </div>
+                        <p>สร้างรายการแจ้งเตือนเจาะจงรายบุคคล (Personal Notification) บันทึกลงตาราง <span class="code-inline">notifications</span> โดยตั้งค่า <span class="code-inline">is_read = 0</span></p>
+                    </div>
+                    <div class="method-item">
+                        <div class="method-signature">
+                            <span class="syntax-keyword">public function</span> <span class="syntax-fn">notifyRole</span>(<span class="syntax-type">string</span> <span class="syntax-var">$role</span>, ?<span class="syntax-type">int</span> <span class="syntax-var">$bookingId</span>, <span class="syntax-type">string</span> <span class="syntax-var">$title</span>, <span class="syntax-type">string</span> <span class="syntax-var">$message</span>, <span class="syntax-type">string</span> <span class="syntax-var">$type</span> = <span class="syntax-string">'info'</span>): <span class="syntax-type">void</span>
+                        </div>
+                        <p><strong>การกระจายข่าวสารตามบทบาท (Role Multicasting):</strong> ค้นหาผู้ใช้งานทุกคนที่มีบทบาทตรงกับ <span class="code-inline">$role</span> (เช่น 'academic' หรือ 'building') และทำการสร้างการแจ้งเตือนส่งให้เจ้าหน้าที่ในฝ่ายนั้นทุกคนพร้อมกัน</p>
+                    </div>
+                    <div class="method-item">
+                        <div class="method-signature">
+                            <span class="syntax-keyword">public function</span> <span class="syntax-fn">countUnread</span>(<span class="syntax-type">int</span> <span class="syntax-var">$userId</span>): <span class="syntax-type">int</span>
+                        </div>
+                        <p>นับจำนวนข้อความที่ยังไม่ได้เปิดอ่าน เพื่อนำไปแสดงเป็นตัวเลขสีแดงบนกระดิ่งแจ้งเตือนบนแถบเมนูด้านบน</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 11: GLOBAL VARIABLES & CONFIG -->
+        <section id="variables">
+            <h2 class="section-title"><span class="num">11</span> ตัวแปรคงที่ ตัวแปรเซสชัน และคอนฟิก (Global Variables)</h2>
+            
+            <h3 class="sub-title">1. ค่าคงที่ใน <code>config/config.php</code></h3>
+            <div class="table-responsive">
+                <table class="doc-table">
+                    <thead>
+                        <tr>
+                            <th>ชื่อค่าคงที่ (Constant)</th>
+                            <th>ค่าตั้งต้น</th>
+                            <th>คำอธิบายและการใช้งาน</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>DB_HOST</strong></td>
+                            <td><code>'localhost'</code></td>
+                            <td>ที่อยู่ของ MySQL Server (XAMPP ปกติคือ localhost)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>DB_NAME</strong></td>
+                            <td><code>'npru_room_booking'</code></td>
+                            <td>ชื่อ Schema ฐานข้อมูลของระบบ</td>
+                        </tr>
+                        <tr>
+                            <td><strong>DB_USER</strong></td>
+                            <td><code>'root'</code></td>
+                            <td>ชื่อผู้ใช้สิทธิ์เข้าถึงฐานข้อมูล MySQL</td>
+                        </tr>
+                        <tr>
+                            <td><strong>DB_PASS</strong></td>
+                            <td><code>''</code> (ค่าว่าง)</td>
+                            <td>รหัสผ่านสำหรับ root (ใน XAMPP เริ่มต้นเป็นค่าว่าง)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>BASE_URL</strong></td>
+                            <td><em>Auto-detected</em></td>
+                            <td>URL สัมพัทธ์สำหรับลิงก์ assets และไฟล์ในโฟลเดอร์ <span class="code-inline">public/</span> ทำงานได้ทั้งการเปลี่ยนชื่อโฟลเดอร์โปรเจกต์</td>
+                        </tr>
+                        <tr>
+                            <td><strong>PROJECT_URL</strong></td>
+                            <td><em>Auto-detected</em></td>
+                            <td>URL สัมพัทธ์ชี้ไปยัง Root Directory ของโปรเจกต์</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="sub-title">2. โครงสร้างตัวแปรใน Session (<code>$_SESSION['user']</code>)</h3>
+            <p>เมื่อผู้ใช้ล็อกอินผ่าน ระบบจะจัดเก็บข้อมูลลงในเซสชัน เพื่อใช้ตรวจสอบสิทธิ์ในทุกๆ หน้าเว็บ:</p>
+            <div class="code-block">
+                <div class="code-header">
+                    <span>Session Data Structure</span>
+                    <span class="code-lang">PHP Array</span>
+                </div>
+                <pre><code>$_SESSION[<span class="syntax-string">'user'</span>] = [
+    <span class="syntax-string">'id'</span>         => <span class="syntax-type">int</span>,     <span class="syntax-comment">// รหัสประจำตัวในตาราง users</span>
+    <span class="syntax-string">'student_id'</span> => <span class="syntax-type">string</span>,  <span class="syntax-comment">// รหัสนักศึกษา 9 หลัก (หรือ null ถ้าเป็นเจ้าหน้าที่)</span>
+    <span class="syntax-string">'name'</span>       => <span class="syntax-type">string</span>,  <span class="syntax-comment">// ชื่อ-นามสกุลจริง</span>
+    <span class="syntax-string">'email'</span>      => <span class="syntax-type">string</span>,  <span class="syntax-comment">// อีเมลที่ใช้ติดต่อ</span>
+    <span class="syntax-string">'phone'</span>      => <span class="syntax-type">string</span>,  <span class="syntax-comment">// เบอร์โทรศัพท์</span>
+    <span class="syntax-string">'role'</span>       => <span class="syntax-type">string</span>   <span class="syntax-comment">// บทบาท: 'student' | 'academic' | 'building' | 'admin'</span>
+];</code></pre>
+            </div>
+        </section>
+
+        <!-- SECTION 12: RESTFUL APIS -->
+        <section id="api-endpoints">
+            <h2 class="section-title"><span class="num">12</span> ข้อมูลจำเพาะ API และการแลกเปลี่ยนข้อมูล (API Endpoints)</h2>
+            <p>ระบบมีชุด Ajax Web Service สำหรับการสื่อสารแบบ Asynchronous โดยส่งและรับข้อมูลเป็นรูปแบบ JSON:</p>
+
+            <!-- API 1 -->
+            <div class="class-card">
+                <div class="class-card-header">
+                    <div>
+                        <span class="api-method method-get">GET</span>
+                        <strong style="margin-left: 8px;">/public/api/get_room_schedule.php</strong>
+                    </div>
+                    <span class="type-tag">JSON Endpoint</span>
+                </div>
+                <div class="class-card-body">
+                    <p><strong>หน้าที่:</strong> ดึงข้อมูลผังตารางเวลาของห้องเรียนรายชั่วโมง (ตั้งแต่ 08:00 ถึง 18:00) ตามวันที่ระบุ เพื่อสร้าง Timeline สีเขียว/สีแดง บนหน้าต่างป๊อปอัพ Modal</p>
+                    <p><strong>Parameters (Query String):</strong></p>
+                    <ul>
+                        <li><span class="code-inline">room_id</span> (int, จำเป็น) : รหัสห้อง</li>
+                        <li><span class="code-inline">date</span> (string, ตัวเลือก) : วันที่ในรูปแบบ YYYY-MM-DD (เริ่มต้นเป็นวันปัจจุบัน)</li>
+                    </ul>
+                    <p><strong>ตัวอย่าง JSON Response:</strong></p>
+                    <div class="code-block">
+                        <pre><code>{
+  <span class="syntax-string">"success"</span>: <span class="syntax-keyword">true</span>,
+  <span class="syntax-string">"room"</span>: { <span class="syntax-string">"id"</span>: 1, <span class="syntax-string">"room_code"</span>: <span class="syntax-string">"C301"</span>, <span class="syntax-string">"room_name"</span>: <span class="syntax-string">"ห้องประชุมใหญ่"</span>, <span class="syntax-string">"capacity"</span>: 200 },
+  <span class="syntax-string">"date"</span>: <span class="syntax-string">"2026-10-22"</span>,
+  <span class="syntax-string">"timeline"</span>: [
+    {
+      <span class="syntax-string">"time_label"</span>: <span class="syntax-string">"08:00 - 09:00"</span>,
+      <span class="syntax-string">"start"</span>: <span class="syntax-string">"08:00"</span>,
+      <span class="syntax-string">"end"</span>: <span class="syntax-string">"09:00"</span>,
+      <span class="syntax-string">"is_booked"</span>: <span class="syntax-keyword">false</span>
+    },
+    {
+      <span class="syntax-string">"time_label"</span>: <span class="syntax-string">"09:00 - 10:00"</span>,
+      <span class="syntax-string">"start"</span>: <span class="syntax-string">"09:00"</span>,
+      <span class="syntax-string">"end"</span>: <span class="syntax-string">"10:00"</span>,
+      <span class="syntax-string">"is_booked"</span>: <span class="syntax-keyword">true</span>,
+      <span class="syntax-string">"booking"</span>: { <span class="syntax-string">"topic"</span>: <span class="syntax-string">"บรรยายพิเศษ AI"</span>, <span class="syntax-string">"requester_name"</span>: <span class="syntax-string">"อาจารย์สมชาย"</span> }
+    }
+  ]
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API 2 -->
+            <div class="class-card">
+                <div class="class-card-header">
+                    <div>
+                        <span class="api-method method-post">POST</span> / <span class="api-method method-get">GET</span>
+                        <strong style="margin-left: 8px;">/public/api/notifications.php</strong>
+                    </div>
+                    <span class="type-tag">JSON Endpoint</span>
+                </div>
+                <div class="class-card-body">
+                    <p><strong>หน้าที่:</strong> บริหารจัดการการแจ้งเตือนของผู้ใช้ที่ล็อกอิน</p>
+                    <p><strong>Actions ที่รองรับ:</strong></p>
+                    <ul>
+                        <li><span class="code-inline">action=list</span> (GET): ดึงรายการแจ้งเตือน 20 รายการล่าสุด พร้อมจำนวนที่ยังไม่อ่าน (<span class="code-inline">unread_count</span>)</li>
+                        <li><span class="code-inline">action=mark_read</span> (POST, id): กำหนดให้ข้อความรายการที่ระบุมีสถานะอ่านแล้ว</li>
+                        <li><span class="code-inline">action=mark_all_read</span> (POST): กำหนดให้ข้อความทั้งหมดของผู้ใช้เป็นอ่านแล้ว</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 13: USER MANUAL -->
+        <section id="user-manual">
+            <h2 class="section-title"><span class="num">13</span> คู่มือการใช้งานสำหรับนักศึกษา (Student Guide)</h2>
+            <div class="callout callout-info">
+                <div class="callout-title">ขั้นตอนการจองห้องเรียน</div>
+                <ol style="padding-left: 20px; line-height: 1.8;">
+                    <li><strong>เข้าสู่ระบบ:</strong> ไปที่หน้า <span class="code-inline">public/login.php</span> ล็อกอินด้วยรหัสนักศึกษา 9 หลัก (หรือสมัครสมาชิกใหม่ที่ <span class="code-inline">public/register.php</span>)</li>
+                    <li><strong>เลือกห้องและตรวจสอบสถานะ:</strong> ที่หน้าแรก (<span class="code-inline">public/index.php</span>) ดูข้อมูลห้อง ความจุ และสิ่งอำนวยความสะดวก ใช้ช่องค้นหาเพื่อกรองประเภทห้อง</li>
+                    <li><strong>คลิกปุ่ม "เช็คตาราง & ขอจองห้อง":</strong> ระบบจะเปิดหน้าต่าง Modal พร้อมแสดงผังช่วงเวลา 08:00 - 18:00 หากช่วงเวลาใดเป็นสีเขียว สามารถคลิกเพื่อเลือกช่วงเวลานั้นลงในฟอร์มได้ทันที</li>
+                    <li><strong>กรอกรายละเอียดและยืนยัน:</strong> ตรวจสอบชื่อ เบอร์โทร กรอกหัวข้อวัตถุประสงค์ และระบุจำนวนคน (ต้องไม่เกินความจุห้อง) แล้วคลิก "ส่งคำขอจองห้อง"</li>
+                    <li><strong>ติดตามผล:</strong> ตรวจสอบสถานะคำขอได้ที่เมนู "คำขอของฉัน" (<span class="code-inline">my-bookings.php</span>) หรือรอดูการแจ้งเตือนที่ไอคอนกระดิ่งด้านบน</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- SECTION 14: ADMIN MANUAL -->
+        <section id="admin-manual">
+            <h2 class="section-title"><span class="num">14</span> คู่มือสำหรับเจ้าหน้าที่และผู้ดูแลระบบ (Staff & Admin Portal)</h2>
+            <p>เจ้าหน้าที่สามารถเข้าสู่ระบบผ่านลิงก์ <span class="code-inline">admin/index.php</span> โดยมีสิทธิ์ตามหน้าที่ดังนี้:</p>
+
+            <div class="table-responsive">
+                <table class="doc-table">
+                    <thead>
+                        <tr>
+                            <th>ฝ่ายงาน (Role)</th>
+                            <th>บัญชีทดสอบเริ่มต้น</th>
+                            <th>หน้าที่และสิทธิ์บนหน้าแดชบอร์ด</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong style="color: #0284c7;">ฝ่ายวิชาการ (Academic)</strong></td>
+                            <td>
+                                Username: <code>academic</code> หรือ <code>academic@npru.ac.th</code><br>
+                                Password: <code>1234</code>
+                            </td>
+                            <td>
+                                <ul>
+                                    <li>ดูรายการคำขอที่มีสถานะ <span class="status-badge b-pending">pending</span></li>
+                                    <li>ตรวจสอบความถูกต้องของการเรียนการสอน</li>
+                                    <li>กดปุ่ม <strong>"อนุมัติ"</strong> เพื่อเปลี่ยนสถานะเป็น <span class="status-badge b-approved">approved</span> และส่งต่องานให้อาคาร</li>
+                                    <li>กดปุ่ม <strong>"ปฏิเสธ"</strong> พร้อมระบุเหตุผลหากไม่ผ่านเกณฑ์</li>
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: #16a34a;">ฝ่ายอาคารสถานที่ (Building)</strong></td>
+                            <td>
+                                Username: <code>building</code> หรือ <code>building@npru.ac.th</code><br>
+                                Password: <code>1234</code>
+                            </td>
+                            <td>
+                                <ul>
+                                    <li>ดูรายการคำขอที่ผ่านวิชาการแล้ว (<span class="status-badge b-approved">approved</span>)</li>
+                                    <li>จัดเตรียมเปิดห้อง เปิดแอร์ และอุปกรณ์</li>
+                                    <li>กดปุ่ม <strong>"ยืนยันเปิดใช้งานห้อง"</strong> เพื่อเปลี่ยนสถานะเป็น <span class="status-badge b-ready">ready</span></li>
+                                    <li>ควบคุมสถานะเปิด/ปิดปรับปรุงห้อง (<span class="code-inline">available / maintenance</span>)</li>
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: #7c3aed;">ผู้ดูแลระบบ (Admin)</strong></td>
+                            <td>
+                                Username: <code>admin</code> หรือ <code>admin@npru.ac.th</code><br>
+                                Password: <code>1234</code>
+                            </td>
+                            <td>
+                                <ul>
+                                    <li>มีสิทธิ์การทำงานของทั้งฝ่ายวิชาการและฝ่ายอาคารครบถ้วน</li>
+                                    <li>ตรวจสอบประวัติการจองย้อนหลังทั้งหมดของระบบ</li>
+                                    <li>ดูรายชื่อสมาชิก นักศึกษา และบุคลากรทั้งหมดที่ลงทะเบียนในระบบ</li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECTION 15: SETUP & INSTALLATION -->
+        <section id="setup-guide">
+            <h2 class="section-title"><span class="num">15</span> การติดตั้งและสภาพแวดล้อม (Installation & Setup)</h2>
+            <div class="callout callout-warning">
+                <div class="callout-title">ข้อกำหนดของระบบ (System Requirements)</div>
+                <ul style="padding-left: 20px;">
+                    <li>เว็บเซิร์ฟเวอร์ Apache (แนะนำโปรแกรม XAMPP หรือ WampServer)</li>
+                    <li>เวอร์ชัน PHP: PHP 7.4 ขึ้นไป (แนะนำ PHP 8.0, 8.1, หรือ 8.2) พร้อมเปิดใช้ PDO Extension</li>
+                    <li>ฐานข้อมูล: MySQL 5.7+ หรือ MariaDB 10.4+</li>
+                </ul>
+            </div>
+
+            <h3 class="sub-title">ขั้นตอนการติดตั้งอย่างรวดเร็ว (Quick Setup Steps)</h3>
+            <ol style="padding-left: 24px; line-height: 2;">
+                <li>วางโฟลเดอร์โปรเจกต์ไว้ที่ไดเรกทอรี <span class="code-inline">C:\xampp\htdocs\projcet008-0036-main</span></li>
+                <li>เปิด XAMPP Control Panel และกด Start บริการ <strong>Apache</strong> และ <strong>MySQL</strong></li>
+                <li>เปิดเว็บเบราว์เซอร์ไปที่ <span class="code-inline">http://localhost/phpmyadmin/</span> สร้างฐานข้อมูลชื่อ <span class="code-inline">npru_room_booking</span> แล้วกด Import ไฟล์ <span class="code-inline">database.sql</span> (หรือเข้าผ่าน <span class="code-inline">http://localhost/projcet008-0036-main/setup_db.php</span> เพื่อให้ระบบสร้างอัตโนมัติ)</li>
+                <li>เปิดใช้งานหน้าเว็บหลักได้ที่: <span class="code-inline">http://localhost/projcet008-0036-main/public/</span></li>
+                <li>เข้าสู่ระบบด้วยบัญชี Admin: บัญชี <span class="code-inline">admin</span> รหัสผ่าน <span class="code-inline">1234</span></li>
+            </ol>
+        </section>
+
+    </main>
+
+    <script>
+        // Smooth highlight active navigation link on scroll
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.sidebar-nav a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= (sectionTop - 120)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
