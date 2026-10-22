@@ -84,7 +84,7 @@ ON DUPLICATE KEY UPDATE `room_name`=VALUES(`room_name`);
 
 -- Initial Staff / Admin Accounts (Password: 1234)
 INSERT INTO `users` (`student_id`, `name`, `email`, `password`, `phone`, `role`) VALUES
-(NULL, 'ผู้ดูแลระบบสูงสุด', 'admin@npru.ac.th', '$2y$10$eE0mQYmC3p6Zq5VjX0Y9/eLpS6C0L7C4qW0Q6.qQ8vE1A2vM3vN3W', '034109300', 'admin'),
-(NULL, 'อาจารย์วิภาดา รักษ์วิชาการ (ฝ่ายวิชาการ)', 'academic@npru.ac.th', '$2y$10$eE0mQYmC3p6Zq5VjX0Y9/eLpS6C0L7C4qW0Q6.qQ8vE1A2vM3vN3W', '034109301', 'academic'),
-(NULL, 'นายสมเกียรติ มั่นคง (ฝ่ายอาคารสถานที่)', 'building@npru.ac.th', '$2y$10$eE0mQYmC3p6Zq5VjX0Y9/eLpS6C0L7C4qW0Q6.qQ8vE1A2vM3vN3W', '034109302', 'building')
-ON DUPLICATE KEY UPDATE `name`=VALUES(`name`);
+(NULL, 'ผู้ดูแลระบบสูงสุด', 'admin@npru.ac.th', '$2y$10$ESH/kOz5pKzJN8bP3kGBtu3uPyB5WphYlix.gZp3jP3oZIHrKyOdW', '034109300', 'admin'),
+(NULL, 'อาจารย์วิภาดา รักษ์วิชาการ (ฝ่ายวิชาการ)', 'academic@npru.ac.th', '$2y$10$ESH/kOz5pKzJN8bP3kGBtu3uPyB5WphYlix.gZp3jP3oZIHrKyOdW', '034109301', 'academic'),
+(NULL, 'นายสมเกียรติ มั่นคง (ฝ่ายอาคารสถานที่)', 'building@npru.ac.th', '$2y$10$ESH/kOz5pKzJN8bP3kGBtu3uPyB5WphYlix.gZp3jP3oZIHrKyOdW', '034109302', 'building')
+ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), `password`=VALUES(`password`);

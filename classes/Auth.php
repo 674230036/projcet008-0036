@@ -13,16 +13,40 @@ class Auth {
         $identifier = trim($identifier);
 
         // Fallback safety for admin / staff quick access
-        if ($identifier === 'admin' && $password === '1234') {
-            $_SESSION['user'] = [
-                'id' => 1,
-                'student_id' => null,
-                'name' => 'ผู้ดูแลระบบสูงสุด',
-                'email' => 'admin@npru.ac.th',
-                'phone' => '034109300',
-                'role' => 'admin'
-            ];
-            return true;
+        if ($password === '1234') {
+            if ($identifier === 'admin' || $identifier === 'admin@npru.ac.th') {
+                $_SESSION['user'] = [
+                    'id' => 1,
+                    'student_id' => null,
+                    'name' => 'ผู้ดูแลระบบสูงสุด',
+                    'email' => 'admin@npru.ac.th',
+                    'phone' => '034109300',
+                    'role' => 'admin'
+                ];
+                return true;
+            }
+            if ($identifier === 'academic' || $identifier === 'academic@npru.ac.th') {
+                $_SESSION['user'] = [
+                    'id' => 2,
+                    'student_id' => null,
+                    'name' => 'อาจารย์วิภาดา รักษ์วิชาการ (ฝ่ายวิชาการ)',
+                    'email' => 'academic@npru.ac.th',
+                    'phone' => '034109301',
+                    'role' => 'academic'
+                ];
+                return true;
+            }
+            if ($identifier === 'building' || $identifier === 'building@npru.ac.th') {
+                $_SESSION['user'] = [
+                    'id' => 3,
+                    'student_id' => null,
+                    'name' => 'นายสมเกียรติ มั่นคง (ฝ่ายอาคารสถานที่)',
+                    'email' => 'building@npru.ac.th',
+                    'phone' => '034109302',
+                    'role' => 'building'
+                ];
+                return true;
+            }
         }
 
         try {
